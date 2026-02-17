@@ -1,16 +1,17 @@
 # My Flash Site 使用指南
 
-这是一个基于 Docker 和 Nginx 构建的 Flash 游戏库项目。它利用 [Ruffle](https://ruffle.rs/) 模拟器在现代浏览器中运行 Flash 游戏 (`.swf` 文件)，并提供了简单的游戏列表和带有基本认证的安全访问。
+这是一个基于 Docker 和 Nginx 构建的 Flash 游戏库项目。它利用 [Ruffle](https://ruffle.rs/) 模拟器在现代浏览器中运行 Flash 游戏 (`.swf` 文件)，并提供了**按目录分类的游戏列表**、实时搜索过滤和带有基本认证的安全访问。
 
 ## 目录结构
 
 ```
 my-flash-site/
 ├── docker-compose.yml          # Docker 服务配置文件
-├── 生成html下的index.html命令    # 扫描游戏文件并生成 index.html 的脚本
+├── generate_index.sh           # 扫描游戏目录并生成 index.html 的脚本（保留分类结构）
 ├── 生成认证用户和密码            # 生成 .htpasswd 密码文件的命令
 └── html/                       # 网站根目录
     ├── default.conf            # Nginx 配置文件
+    ├── index.html              # (生成) 游戏列表首页
     ├── player.html             # 游戏播放器页面
     ├── ruffle/                 # Ruffle 模拟器核心文件
     └── games/                  # (挂载目录) 存放 .swf 游戏文件
@@ -19,7 +20,7 @@ my-flash-site/
 ## 前置要求
 
 - 必须安装 [Docker](https://www.docker.com/) 和 [Docker Compose](https://docs.docker.com/compose/)。
-- 建议在 Linux 环境或支持 Shell 脚本的环境 (如 Windows WSL 或 Git Bash) 下操作。
+- 服务器需要 `bash` 和 `python3`（用于 URL 编码中文文件名）。
 
 ## 快速开始
 
@@ -35,16 +36,10 @@ volumes:
   # ...
 ```
 
-同时，你需要修改 `生成html下的index.html命令` 脚本中的路径，使其与你本地的游戏路径一致，以便脚本能正确扫描到文件：
+同时修改 `generate_index.sh` 脚本顶部的 `GAME_ROOT` 变量为对应的路径：
 
 ```bash
-# 修改此行中的路径为你本地的实际路径
-find /path/to/your/games -name "*.swf" | while read filepath; do
-    # ...
-    # 修改此行中的路径前缀，确保替换逻辑正确
-    relpath=$(echo "$filepath" | sed 's|/path/to/your/games|games|')
-    # ...
-done
+GAME_ROOT="/path/to/your/games"
 ```
 
 ### 2. 生成认证密码
@@ -65,8 +60,15 @@ docker run --rm -it httpd:alpine htpasswd -cb /dev/stdout root passwd > html/.ht
 运行以下脚本扫描游戏目录并生成 `html/index.html` 文件：
 
 ```bash
-sh 生成html下的index.html命令
+bash generate_index.sh
 ```
+
+脚本会递归遍历游戏目录，**保留原始的分类结构**，并输出详细的进度日志。生成的页面包含：
+
+- 📂 可折叠的目录分类层级
+- 🔍 实时搜索过滤功能
+- 📊 每个分类的游戏计数
+- 🎨 暗色主题 + 响应式布局
 
 ### 4. 启动服务
 
@@ -85,7 +87,7 @@ docker-compose up -d
 
 ## 维护与更新
 
-- **添加新游戏**：将 `.swf` 文件放入你挂载的游戏目录中，然后重新运行步骤 3 中的生成脚本即可更新列表，无需重启 Docker 容器。
+- **添加新游戏**：将 `.swf` 文件放入你挂载的游戏目录中，然后重新运行 `bash generate_index.sh` 即可更新列表，无需重启 Docker 容器。
 - **修改 Nginx 配置**：如果修改了 `html/default.conf`，需要重启容器生效：`docker-compose restart`。
 
 ## 注意事项
