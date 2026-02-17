@@ -1,0 +1,1 @@
+docker run --rm -it httpd:alpine htpasswd -cb /dev/stdout root passwd > .htpasswd
