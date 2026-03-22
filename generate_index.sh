@@ -214,7 +214,7 @@ generate_dir() {
             fi
             # URL 编码路径
             local encoded=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$webpath'))")
-            echo "<li><a href='player.html?game=${encoded}'>${gamename}</a></li>" >> "$OUTPUT"
+            echo "<li><a href='player.html?game=${encoded}' target='_blank'>${gamename}</a></li>" >> "$OUTPUT"
         done
         echo '</ul>' >> "$OUTPUT"
     fi
