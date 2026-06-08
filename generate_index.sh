@@ -3,7 +3,7 @@
 # 在服务器上运行（docker 容器内或直接在宿主机）
 
 # 游戏根目录（在宿主机上的路径）
-GAME_ROOT="/root/data/docker_data/openlist/data/openlist/download/小游戏合集（未压缩）"
+GAME_ROOT="/root/data/docker_data/my-flash-site/小游戏合集"
 # 输出文件
 OUTPUT="html/index.html"
 # web 路径前缀（对应 docker-compose 中的挂载路径）
@@ -250,7 +250,13 @@ generate_dir() {
 
 # ============ 生成三个顶层分类 ============
 # 定义顶层目录
-TOP_DIRS=("更新" "万款小游戏合集" "flash 160＋款怀旧小游戏")
+TOP_DIRS=()
+for dir in "$GAME_ROOT"/*/; do
+    # 确保是目录
+    if [ -d "$dir" ]; then
+        TOP_DIRS+=("$(basename "$dir")")
+    fi
+done
 
 for top in "${TOP_DIRS[@]}"; do
     top_path="${GAME_ROOT}/${top}"
